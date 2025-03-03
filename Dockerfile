@@ -1,24 +1,14 @@
 # Fase de compilación
-FROM openjdk:11-slim AS build
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
-
-# Instalar Maven y compilar la aplicación
-RUN apt-get update && apt-get install -y maven
 COPY . .
-RUN mvn clean package -DskipTests
+RUN ./mvnw clean package -DskipTests
 
-# Imagen final para ejecución
-FROM openjdk:11-slim
+# Imagen final de ejecución
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-
-# Copiar el .jar desde la fase de compilación
 COPY --from=build /app/target/*.jar app.jar
 
-# Verificar que el .jar existe antes de ejecutarlo
-RUN ls -l /app
-
-# Exponer el puerto si es necesario (ajústalo si `cloud-gateway` usa otro)
+# Exponer el puerto y ejecutar
 EXPOSE 8080
-
-# Ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
